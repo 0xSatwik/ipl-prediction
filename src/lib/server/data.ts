@@ -18,8 +18,12 @@ export async function getAppData(): Promise<AppData> {
 
 export async function getHomePayload() {
 	const data = await getAppData();
+	// Prefer the first upcoming match whose venue exists in our data.
+	// Fall back to any fixture with a known venue, then to the first fixture overall.
 	const featuredFixture =
-		data.fixtures.find((fixture) => findVenue(data, fixture.venue)) ?? data.fixtures[0];
+		data.fixtures.find((f) => f.status !== 'Post' && findVenue(data, f.venue)) ??
+		data.fixtures.find((f) => findVenue(data, f.venue)) ??
+		data.fixtures[0];
 	const defaultContext = featuredFixture
 		? {
 				teamA: featuredFixture.teamA,

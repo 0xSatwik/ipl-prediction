@@ -110,6 +110,21 @@
 	$: teamASN = data.teams.find((t) => t.name === form.teamA)?.shortName ?? form.teamA;
 	$: teamBSN = data.teams.find((t) => t.name === form.teamB)?.shortName ?? form.teamB;
 
+	// Clear stale prediction/fantasy results when the user changes teams.
+	// Uses a prev-key guard so the initial reactive run (on mount) doesn't wipe
+	// out results that onMount -> runAll() is about to populate.
+	let _prevTeamKey = `${form.teamA}|${form.teamB}`;
+	$: {
+		const key = `${form.teamA}|${form.teamB}`;
+		if (key !== _prevTeamKey) {
+			_prevTeamKey = key;
+			prediction = null;
+			fantasy = null;
+			error = '';
+			fantasyError = '';
+		}
+	}
+
 	function pct(v: number) { return `${v.toFixed(1)}%`; }
 
 	function buildPayload() {
