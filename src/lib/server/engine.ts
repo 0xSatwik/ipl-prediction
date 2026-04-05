@@ -548,12 +548,17 @@ function deriveBattingFirst(
 		if (tossDecision === 'bat') return tossWinner;
 		return tossWinner === teamA ? teamB : teamA;
 	}
-	// No toss: if venue favors chasing (>52%), assume winner would field → teamA bats
-	// Otherwise default to teamA batting first
+	// No toss: use deterministic order (alphabetical) so prediction is independent
+	// of which team the user puts in the "Team A" vs "Team B" slot.
+	// If venue strongly favors chasing (>52%), the team that would bat first is
+	// the alphabetically-first team; otherwise also alphabetically-first.
+	// This removes form-order bias while giving a stable default.
+	const [first] = [teamA, teamB].sort();
 	if (venueChaseWinRate != null && venueChaseWinRate > 52) {
-		return teamA; // assume toss winner would field, so "other team" bats first — default teamA
+		// Venue favors chasing → assume toss winner would field → first-alphabetically bats
+		return first;
 	}
-	return teamA;
+	return first;
 }
 
 function sanitizeSelectedXi(team: TeamProfile, keys: string[] | undefined) {
@@ -690,7 +695,7 @@ export function predictMatch(data: AppData, input: PredictionInput): PredictionR
 	if (teamA.name === teamB.name) throw new Error('Choose two different teams.');
 
 	const venue = findVenue(data, input.venue);
-	const weights: ModelWeights | undefined = data.modelWeights;
+	// NOTE: data.modelWeights intentionally not used — see totalEdge comment below
 	const priors: GlobalPriors | undefined = data.globalPriors;
 
 	const battingFirst =
@@ -788,40 +793,28 @@ export function predictMatch(data: AppData, input: PredictionInput): PredictionR
 	const bowlingEdge = teamAUnits.bowling - teamBUnits.bowling;
 	const matchupEdge = teamAMatchupEdge - teamBMatchupEdge;
 
-	// Use trained model weights if available, otherwise fall back to hand-tuned
-	let totalEdge: number;
-	if (weights) {
-		totalEdge =
-			(weights.intercept ?? 0) +
-			battingEdge * (weights.battingEdge ?? 0.38) +
-			bowlingEdge * (weights.bowlingEdge ?? 0.3) +
-			venueEdge * (weights.venueEdge ?? 1.0) +
-			eloEdge * (weights.eloEdge ?? 0.15) +
-			formEdge * (weights.formEdge ?? 0.12) +
-			tossEdge * (weights.tossEdge ?? 1.0) +
-			headToHeadEdge * (weights.h2hEdge ?? 0.2) +
-			stabilityEdge * (weights.stabilityEdge ?? 0.08) +
-			freshnessEdge * (weights.freshnessEdge ?? 0.18) +
-			matchupEdge * (weights.matchupEdge ?? 0.22) +
-			deathBowlingEdge * (weights.deathBowlingEdge ?? 0.1) +
-			powerplayEdge * (weights.powerplayEdge ?? 0.08) +
-			impactPlayerEdge; // hand-tuned, not in trained model
-	} else {
-		totalEdge =
-			battingEdge * 0.38 +
-			bowlingEdge * 0.3 +
-			venueEdge +
-			eloEdge * 0.15 +
-			formEdge * 0.12 +
-			stabilityEdge * 0.08 +
-			freshnessEdge * 0.18 +
-			matchupEdge * 0.22 +
-			tossEdge +
-			headToHeadEdge * 0.2 +
-			deathBowlingEdge * 0.1 +
-			powerplayEdge * 0.08 +
-			impactPlayerEdge;
-	}
+	// Use hand-tuned fallback weights.
+	// NOTE: Trained model weights are disabled because the training pipeline has
+	// feature mismatch issues (Finding 1 & 2 from code audit): training uses
+	// current-2026-squad aggregates while inference uses live per-match XI signals,
+	// resulting in nonsensical weights (negative batting/bowling, duplicated h2h/stability,
+	// zeroed freshness/matchup). The fallback weights below are domain-informed and
+	// produce meaningful predictions. Re-enable trained weights only after the Python
+	// training pipeline is fixed to match inference feature definitions.
+	const totalEdge =
+		battingEdge * 0.38 +
+		bowlingEdge * 0.3 +
+		venueEdge +
+		eloEdge * 0.15 +
+		formEdge * 0.12 +
+		stabilityEdge * 0.08 +
+		freshnessEdge * 0.18 +
+		matchupEdge * 0.22 +
+		tossEdge +
+		headToHeadEdge * 0.2 +
+		deathBowlingEdge * 0.1 +
+		powerplayEdge * 0.08 +
+		impactPlayerEdge;
 
 	const winProbabilityA = round(clamp(logistic(totalEdge / 10) * 100, 7, 93));
 	const winProbabilityB = round(100 - winProbabilityA);
@@ -1009,21 +1002,40 @@ function lineupScore(
 	const volatility = lineup.reduce((s, p) => s + p.volatility, 0);
 	const favoriteCount = lineup.filter((p) => p.currentTeam === favoredTeam).length;
 	const lowAvailabilityCount = lineup.filter((p) => p.availability < 0.72).length;
+	const avgConsistency = lineup.reduce((s, p) => s + p.consistencyScore, 0) / lineup.length;
+	// Value-per-credit metric: higher means more efficient spending
+	const valuePerCredit = expected / Math.max(lineup.reduce((s, p) => s + p.fantasyCredit, 0), 1);
 
 	if (strategy === 'grand') {
-		return expected * 0.58 + ceiling * 0.34 - floor * 0.08 - volatility * 0.06 + favoriteCount * 1.3;
+		// Grand: chase ceiling, embrace variance, prefer differential (non-favored) picks
+		const differentialCount = lineup.filter((p) => p.currentTeam !== favoredTeam).length;
+		return (
+			expected * 0.30 +
+			ceiling * 0.50 -
+			volatility * 0.02 +
+			differentialCount * 3.5 +
+			valuePerCredit * 15
+		);
 	}
 	if (strategy === 'balanced') {
-		return expected * 0.56 + floor * 0.28 + ceiling * 0.12 - volatility * 0.12 + favoriteCount * 0.8;
+		return (
+			expected * 0.56 +
+			floor * 0.22 +
+			ceiling * 0.18 -
+			volatility * 0.10 +
+			favoriteCount * 1.2
+		);
 	}
 
+	// Safe: chase floor, punish volatility, favor consistency & availability
 	return (
-		expected * 0.52 +
-		floor * 0.4 +
-		ceiling * 0.06 -
-		volatility * 0.2 +
-		favoriteCount * 1.1 -
-		lowAvailabilityCount * 7
+		expected * 0.28 +
+		floor * 0.50 +
+		ceiling * 0.02 -
+		volatility * 0.35 +
+		favoriteCount * 2.5 +
+		avgConsistency * 8 -
+		lowAvailabilityCount * 12
 	);
 }
 
@@ -1127,19 +1139,14 @@ function chooseBestLineup(pool: XiPlayer[], favoredTeam: string, strategy: Retur
  * Strategy:
  * 1. Fill role minimums first, picking highest-scoring eligible player per required role slot
  * 2. Fill remaining 3 flex slots with best available players satisfying constraints
- * 3. If no valid lineup at creditLimit=100, retry with progressively relaxed credit caps
+ * 3. Credit cap is strictly 100 — never relaxed (illegal lineups are not useful)
  */
 function greedyFallbackLineup(
 	pool: XiPlayer[],
 	favoredTeam: string,
 	strategy: ReturnType<typeof strategyOf>
 ): XiPlayer[] {
-	// Try with increasing credit limits
-	for (let creditLimit = 100; creditLimit <= 130; creditLimit += 5) {
-		const result = greedyAttempt(pool, favoredTeam, strategy, creditLimit);
-		if (result.length === 11) return result;
-	}
-	return [];
+	return greedyAttempt(pool, favoredTeam, strategy, 100);
 }
 
 function greedyAttempt(
@@ -1223,32 +1230,70 @@ export function buildFantasyLineup(data: AppData, input: PredictionInput): Fanta
 						? (ballsWeight * 0.5 + oversWeight * 0.5)
 						: ballsWeight;
 
+			// Base projected points (shared across strategies)
+			const baseProjected =
+				player.projectedPoints +
+				(player.roleBucket === 'All-Rounder' ? 8 : 0) +
+				(player.roleBucket === 'Wicketkeeper' ? 3 : 0) +
+				(player.currentTeam === favoredTeam ? 2 : 0);
+
+			// Strategy-specific scoring: meaningful divergence by blending base differently
+			let stratProjected: number;
+			let stratFloor: number;
+			let stratCeiling: number;
+			let stratVolatility: number;
+
+			if (strategy === 'safe') {
+				// Safe: projected leans heavily toward floor; reward consistency
+				stratProjected = round(
+					(baseProjected * 0.55 + player.floorPoints * 0.35 + player.consistencyScore * 6) *
+					roleMultiplier
+				);
+				stratFloor = round(player.floorPoints * 1.15 + player.consistencyScore * 0.2);
+				stratCeiling = round(player.ceilingPoints * 0.85);
+				stratVolatility = round(player.volatility * 1.3);
+			} else if (strategy === 'grand') {
+				// Grand: projected leans heavily toward ceiling; value-per-credit matters
+				const creditEfficiency = player.fantasyCredit > 0
+					? player.ceilingPoints / player.fantasyCredit
+					: 0;
+				stratProjected = round(
+					(baseProjected * 0.40 + player.ceilingPoints * 0.45 + creditEfficiency * 8) *
+					roleMultiplier
+				);
+				stratFloor = round(player.floorPoints * 0.80);
+				stratCeiling = round(player.ceilingPoints * 1.25);
+				stratVolatility = round(player.volatility * 0.70);
+			} else {
+				// Balanced: straightforward expected-value focus
+				stratProjected = round(baseProjected * roleMultiplier);
+				stratFloor = round(player.floorPoints);
+				stratCeiling = round(player.ceilingPoints);
+				stratVolatility = round(player.volatility);
+			}
+
 			return {
 				...player,
-				projectedPoints: round(
-					(player.projectedPoints +
-						(player.roleBucket === 'All-Rounder' ? 8 : 0) +
-						(player.roleBucket === 'Wicketkeeper' ? 3 : 0) +
-						(player.currentTeam === favoredTeam ? 2 : 0) +
-						(strategy === 'safe' ? player.floorPoints * 0.1 : 0) +
-						(strategy === 'grand' ? player.ceilingPoints * 0.08 : 0)) *
-					roleMultiplier
-				),
-				floorPoints: round(
-					player.floorPoints + (strategy === 'safe' ? player.consistencyScore * 0.08 : 0)
-				),
-				ceilingPoints: round(
-					player.ceilingPoints + (strategy === 'grand' ? player.ceilingPoints * 0.06 : 0)
-				),
-				volatility: round(player.volatility * (strategy === 'safe' ? 1.12 : 0.96))
+				projectedPoints: stratProjected,
+				floorPoints: stratFloor,
+				ceilingPoints: stratCeiling,
+				volatility: stratVolatility
 			};
 		})
-		.filter((p) => strategy !== 'safe' || p.availability >= 0.58)
-		.sort((a, b) =>
-			strategy === 'safe'
-				? b.consistencyScore - a.consistencyScore || b.projectedPoints - a.projectedPoints
-				: b.projectedPoints - a.projectedPoints
-		);
+		.filter((p) => {
+			if (strategy === 'safe') return p.availability >= 0.58;
+			if (strategy === 'grand') return true; // Include everyone in grand — even risky picks
+			return p.availability >= 0.35; // Balanced: mild filter
+		})
+		.sort((a, b) => {
+			if (strategy === 'safe') {
+				return b.consistencyScore - a.consistencyScore || b.floorPoints - a.floorPoints;
+			}
+			if (strategy === 'grand') {
+				return b.ceilingPoints - a.ceilingPoints || b.projectedPoints - a.projectedPoints;
+			}
+			return b.projectedPoints - a.projectedPoints;
+		});
 
 	let lineup = chooseBestLineup(candidatePool, favoredTeam, strategy);
 	let usedGreedyFallback = false;
@@ -1264,23 +1309,36 @@ export function buildFantasyLineup(data: AppData, input: PredictionInput): Fanta
 	}
 
 	const captain = [...lineup]
-		.sort(
-			(a, b) =>
-				(strategy === 'safe'
-					? b.floorPoints * 0.58 + b.projectedPoints * 0.42 + (b.roleBucket === 'All-Rounder' ? 6 : 0)
-					: b.projectedPoints + (b.roleBucket === 'All-Rounder' ? 8 : 0) + b.ceilingPoints * 0.12) -
-				(strategy === 'safe'
-					? a.floorPoints * 0.58 + a.projectedPoints * 0.42 + (a.roleBucket === 'All-Rounder' ? 6 : 0)
-					: a.projectedPoints + (a.roleBucket === 'All-Rounder' ? 8 : 0) + a.ceilingPoints * 0.12)
-		)[0];
+		.sort((a, b) => {
+			if (strategy === 'safe') {
+				// Safe C: most reliable high-floor scorer
+				const sa = a.floorPoints * 0.60 + a.projectedPoints * 0.30 + a.consistencyScore * 4 + (a.roleBucket === 'All-Rounder' ? 8 : 0);
+				const sb = b.floorPoints * 0.60 + b.projectedPoints * 0.30 + b.consistencyScore * 4 + (b.roleBucket === 'All-Rounder' ? 8 : 0);
+				return sb - sa;
+			}
+			if (strategy === 'grand') {
+				// Grand C: highest ceiling differential pick
+				const sa = a.ceilingPoints * 0.55 + a.projectedPoints * 0.25 + (a.currentTeam !== favoredTeam ? 10 : 0) + (a.roleBucket === 'All-Rounder' ? 6 : 0);
+				const sb = b.ceilingPoints * 0.55 + b.projectedPoints * 0.25 + (b.currentTeam !== favoredTeam ? 10 : 0) + (b.roleBucket === 'All-Rounder' ? 6 : 0);
+				return sb - sa;
+			}
+			// Balanced C: best expected value
+			const sa = a.projectedPoints + (a.roleBucket === 'All-Rounder' ? 8 : 0) + a.ceilingPoints * 0.12;
+			const sb = b.projectedPoints + (b.roleBucket === 'All-Rounder' ? 8 : 0) + b.ceilingPoints * 0.12;
+			return sb - sa;
+		})[0];
 
 	const viceCaptain = [...lineup]
 		.filter((p) => p.playerKey !== captain.playerKey)
-		.sort((a, b) =>
-			strategy === 'safe'
-				? b.floorPoints - a.floorPoints || b.projectedPoints - a.projectedPoints
-				: b.projectedPoints - a.projectedPoints || b.ceilingPoints - a.ceilingPoints
-		)[0];
+		.sort((a, b) => {
+			if (strategy === 'safe') {
+				return b.floorPoints - a.floorPoints || b.consistencyScore - a.consistencyScore;
+			}
+			if (strategy === 'grand') {
+				return b.ceilingPoints - a.ceilingPoints || b.projectedPoints - a.projectedPoints;
+			}
+			return b.projectedPoints - a.projectedPoints || b.ceilingPoints - a.ceilingPoints;
+		})[0];
 
 	return {
 		teamA: prediction.teamA,
@@ -1297,7 +1355,7 @@ export function buildFantasyLineup(data: AppData, input: PredictionInput): Fanta
 			'Safe mode leans toward floor, consistency, availability, and secure role volume.',
 			'Projections are weighted by expected balls faced / overs bowled from batting position data.',
 			'Captain and vice-captain are chosen for repeatable output first, not just raw ceiling.',
-			`Model uses trained logistic regression weights${data.modelWeights ? ' (active)' : ' (fallback)'} with ${MONTE_CARLO_ITERATIONS.toLocaleString()} Monte Carlo simulations.`,
+			`Model uses hand-tuned fallback weights with ${MONTE_CARLO_ITERATIONS.toLocaleString()} Monte Carlo simulations.`,
 			...(usedGreedyFallback
 				? ['Lineup was built using greedy fallback (optimal brute-force search could not satisfy all constraints simultaneously).']
 				: [])

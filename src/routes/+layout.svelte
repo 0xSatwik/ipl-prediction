@@ -115,6 +115,7 @@
 	:global(html) {
 		scroll-behavior: smooth;
 		-webkit-text-size-adjust: 100%;
+		overflow-x: hidden;
 	}
 
 	:global(body) {
@@ -126,6 +127,8 @@
 		line-height: 1.6;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
+		overflow-x: hidden;
+		width: 100%;
 	}
 
 	:global(*) {
@@ -144,6 +147,15 @@
 	:global(::selection) {
 		background: rgba(59, 130, 246, 0.3);
 		color: #fff;
+	}
+
+	:global(select) {
+		max-width: 100%;
+	}
+
+	:global(img, svg, video) {
+		max-width: 100%;
+		height: auto;
 	}
 
 	/* ─── App shell ─── */
@@ -172,7 +184,7 @@
 	.navbar-inner {
 		max-width: var(--max-width);
 		margin: 0 auto;
-		padding: 0 1.25rem;
+		padding: 0 1rem;
 		height: 100%;
 		display: flex;
 		align-items: center;
@@ -291,6 +303,28 @@
 			display: flex;
 		}
 
+		.logo-text small {
+			display: none;
+		}
+
+		.logo-icon {
+			width: 1.9rem;
+			height: 1.9rem;
+		}
+
+		.logo-icon svg {
+			width: 16px;
+			height: 16px;
+		}
+
+		.logo-text strong {
+			font-size: 0.95rem;
+		}
+
+		.navbar-inner {
+			padding: 0 0.75rem;
+		}
+
 		.nav-links {
 			position: fixed;
 			top: 0;
@@ -298,6 +332,7 @@
 			width: 70%;
 			max-width: 280px;
 			height: 100vh;
+			height: 100dvh;
 			background: var(--bg-secondary);
 			border-left: 1px solid var(--border-color);
 			flex-direction: column;
@@ -319,6 +354,16 @@
 
 		.nav-links a:hover {
 			background: rgba(59, 130, 246, 0.15);
+		}
+	}
+
+	@media (max-width: 380px) {
+		.logo {
+			gap: 0.4rem;
+		}
+
+		.logo-text strong {
+			font-size: 0.88rem;
 		}
 	}
 </style>

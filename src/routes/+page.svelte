@@ -703,7 +703,8 @@
 		background: var(--bg-card);
 		border: 1px solid var(--border-color);
 		border-radius: var(--radius-lg);
-		min-width: 100px;
+		min-width: 0;
+		flex: 1 1 auto;
 	}
 
 	.stat-value {
@@ -854,6 +855,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.3rem;
+		min-width: 0;
 	}
 
 	.form-group label {
@@ -874,6 +876,11 @@
 		font-size: 0.9rem;
 		transition: border-color 0.2s ease;
 		appearance: auto;
+		width: 100%;
+		min-width: 0;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	select:focus {
@@ -1387,6 +1394,8 @@
 		border-radius: var(--radius-lg);
 		padding: 0.8rem;
 		text-align: center;
+		min-width: 0;
+		overflow: hidden;
 	}
 
 	.fantasy-meta span {
@@ -1395,6 +1404,9 @@
 		font-weight: 700;
 		font-size: 1rem;
 		color: var(--text-primary);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.fantasy-meta small { font-size: 0.72rem; color: var(--text-muted); }
@@ -1552,81 +1564,325 @@
 
 	/* ─── Responsive ─── */
 	@media (max-width: 768px) {
-		.page { padding: 0 0.75rem 2rem; }
+		.page {
+			padding: 0 0.5rem 2rem;
+			gap: 1rem;
+		}
 
-		.hero { padding: 2rem 1rem 1.5rem; }
-		.hero h1 { font-size: 1.5rem; }
+		.hero {
+			padding: 1.5rem 0.75rem 1.2rem;
+			margin-top: 0.5rem;
+		}
 
-		.form-row {
+		.hero h1 { font-size: 1.35rem; }
+
+		.hero-sub {
+			font-size: 0.82rem;
+			line-height: 1.45;
+		}
+
+		.hero-badge {
+			font-size: 0.7rem;
+			padding: 0.25rem 0.7rem;
+			margin-bottom: 0.5rem;
+		}
+
+		.stats-row {
+			gap: 0.35rem;
+			margin-top: 1rem;
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.stat-pill {
+			min-width: 0;
+			padding: 0.45rem 0.5rem;
+		}
+
+		.stat-value { font-size: 0.9rem; }
+		.stat-label { font-size: 0.65rem; }
+
+		/* Fixtures */
+		.fixtures-section { padding: 0; }
+
+		.fixtures-scroll {
 			grid-template-columns: 1fr;
+			gap: 0.4rem;
 		}
 
-		.vs-divider {
-			padding: 0;
+		.fixture-card {
+			padding: 0.7rem 0.8rem;
 		}
 
-		.vs-divider span {
-			display: none;
+		.fixture-teams { font-size: 0.85rem; }
+		.fixture-venue {
+			font-size: 0.7rem;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 
-		.form-grid-3 {
-			grid-template-columns: 1fr;
+		/* Section header and tabs */
+		.section-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
 		}
 
-		.prob-hero {
-			grid-template-columns: 1fr;
+		.section-title { font-size: 1.05rem; }
+
+		.tab-switcher {
+			width: 100%;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.tab-switcher button {
+			padding: 0.4rem 0.5rem;
+			font-size: 0.8rem;
 			text-align: center;
 		}
 
-		.prob-team-b { text-align: center; }
+		/* Controls card */
+		.controls-card {
+			padding: 0.9rem 0.7rem;
+			border-radius: var(--radius-lg);
+		}
 
-		.prob-pct { font-size: 1.6rem; }
+		.form-row {
+			grid-template-columns: 1fr;
+			gap: 0.6rem;
+		}
 
-		.xi-grid,
-		.xi-picker-grid,
-		.dist-grid,
-		.ip-grid,
+		.vs-divider { padding: 0; }
+		.vs-divider span { display: none; }
+
+		.form-grid-3 {
+			grid-template-columns: 1fr;
+			gap: 0.6rem;
+		}
+
 		.form-grid-2 {
+			grid-template-columns: 1fr;
+			gap: 0.6rem;
+		}
+
+		.form-group label {
+			font-size: 0.72rem;
+		}
+
+		select, .readonly-field {
+			padding: 0.55rem 0.65rem;
+			font-size: 0.85rem;
+		}
+
+		/* XI pickers */
+		.xi-picker-grid {
 			grid-template-columns: 1fr;
 		}
 
+		.xi-picker {
+			padding: 0.6rem;
+		}
+
+		.xi-picker-list {
+			max-height: 14rem;
+		}
+
+		.xi-pick-btn {
+			padding: 0.4rem 0.5rem;
+			gap: 0.4rem;
+		}
+
+		.xi-pick-info strong { font-size: 0.8rem; }
+		.xi-pick-info small { font-size: 0.68rem; }
+
+		.role-dot {
+			width: 24px;
+			height: 24px;
+			font-size: 0.55rem;
+		}
+
+		/* Action buttons */
 		.action-row {
 			flex-direction: column;
 		}
 
-		.fixtures-scroll {
+		.btn-primary, .btn-secondary {
+			padding: 0.6rem 1rem;
+			font-size: 0.85rem;
+			width: 100%;
+		}
+
+		/* Probability hero */
+		.prob-hero {
+			grid-template-columns: 1fr;
+			text-align: center;
+			gap: 0.5rem;
+			padding: 1rem 0.8rem;
+		}
+
+		.prob-team {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+		}
+
+		.prob-team-b { text-align: center; }
+
+		.prob-name { font-size: 0.9rem; }
+
+		.prob-pct { font-size: 1.5rem; }
+
+		.prob-mc { font-size: 0.7rem; }
+
+		/* Key stats */
+		.key-stats {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.4rem;
+		}
+
+		.key-stat {
+			padding: 0.6rem;
+		}
+
+		.ks-label { font-size: 0.65rem; }
+		.ks-value { font-size: 0.85rem; }
+
+		/* Score distributions */
+		.dist-grid {
 			grid-template-columns: 1fr;
 		}
 
+		.dist-card { padding: 0.8rem; }
+
+		.dist-bars { gap: 0.3rem; }
+
+		.dist-item {
+			padding: 0.4rem 0.3rem;
+		}
+
+		.dist-item span { font-size: 0.62rem; }
+		.dist-item strong { font-size: 0.95rem; }
+
+		/* Factors */
 		.factors-grid {
 			grid-template-columns: 1fr;
 		}
 
+		.factor-card { padding: 0.6rem; }
+		.factor-head strong { font-size: 0.8rem; }
+		.factor-detail { font-size: 0.72rem; }
+
+		/* XI display */
+		.xi-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.xi-card {
+			padding: 0.8rem;
+		}
+
+		.xi-team-name { font-size: 0.9rem; }
+
+		.xi-player {
+			padding: 0.35rem 0.3rem;
+			gap: 0.35rem;
+		}
+
+		.xi-role-tag {
+			width: 22px;
+			height: 22px;
+			font-size: 0.52rem;
+		}
+
+		.xi-player-info strong { font-size: 0.82rem; }
+		.xi-player-info small { font-size: 0.68rem; }
+
+		/* Matchups */
 		.matchups-list {
 			grid-template-columns: 1fr;
 		}
 
-		.fantasy-grid {
-			grid-template-columns: repeat(2, 1fr);
+		.matchup-card { padding: 0.6rem; }
+		.matchup-names strong { font-size: 0.82rem; }
+		.matchup-stats { font-size: 0.72rem; gap: 0.4rem; }
+
+		/* Impact player grid */
+		.ip-grid {
+			grid-template-columns: 1fr;
 		}
 
-		.key-stats {
-			grid-template-columns: repeat(2, 1fr);
+		.ip-card {
+			padding: 0.7rem;
 		}
 
-		.stats-row {
+		/* Fantasy section */
+		.fantasy-meta-row {
+			grid-template-columns: repeat(2, 1fr);
 			gap: 0.4rem;
 		}
 
-		.stat-pill {
-			min-width: 70px;
-			padding: 0.5rem 0.7rem;
+		.fantasy-meta {
+			padding: 0.6rem 0.4rem;
 		}
 
-		.stat-value { font-size: 0.95rem; }
+		.fantasy-meta span { font-size: 0.88rem; }
+		.fantasy-meta small { font-size: 0.68rem; }
+
+		.fantasy-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.4rem;
+		}
+
+		.fantasy-player-card {
+			padding: 0.7rem 0.5rem;
+			gap: 0.2rem;
+		}
+
+		.f-role-tag {
+			width: 26px;
+			height: 26px;
+			font-size: 0.55rem;
+		}
+
+		.f-name { font-size: 0.78rem; }
+		.f-team { font-size: 0.68rem; }
+		.f-stats { font-size: 0.68rem; gap: 0.3rem; }
+
+		.fantasy-notes p { font-size: 0.72rem; }
+
+		/* Results section */
+		.results-section { gap: 0.8rem; }
+
+		/* Empty state */
+		.empty-state { padding: 2rem 0.5rem; }
+		.empty-state h3 { font-size: 1rem; }
+		.empty-state p { font-size: 0.82rem; }
+
+		/* Subsection */
+		.subsection-title { font-size: 0.9rem; }
 	}
 
 	@media (max-width: 400px) {
+		.page {
+			padding: 0 0.35rem 1.5rem;
+		}
+
+		.hero {
+			padding: 1.2rem 0.5rem 1rem;
+		}
+
+		.hero h1 { font-size: 1.2rem; }
+
+		.stats-row {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.prob-pct { font-size: 1.3rem; }
+
 		.fantasy-grid {
 			grid-template-columns: 1fr;
 		}
@@ -1634,5 +1890,38 @@
 		.fantasy-meta-row {
 			grid-template-columns: repeat(2, 1fr);
 		}
+
+		.controls-card {
+			padding: 0.7rem 0.5rem;
+		}
+
+		select, .readonly-field {
+			padding: 0.5rem 0.55rem;
+			font-size: 0.82rem;
+		}
+
+		.fixture-teams { font-size: 0.8rem; }
+
+		.key-stats {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.ks-value {
+			font-size: 0.78rem;
+			word-break: break-word;
+		}
+	}
+
+	@media (max-width: 340px) {
+		.stats-row {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.stat-pill {
+			padding: 0.35rem 0.3rem;
+		}
+
+		.stat-value { font-size: 0.82rem; }
+		.stat-label { font-size: 0.6rem; }
 	}
 </style>

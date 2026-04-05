@@ -158,6 +158,87 @@ def canonical_team(value: str | None) -> str:
     return TEAM_NAME_MAP.get(value, value)
 
 
+# Venue name normalization: IPL venue strings vary across seasons and data sources.
+# This map consolidates known variants to a single canonical name.
+VENUE_NAME_MAP: dict[str, str] = {
+    # Mumbai
+    "Wankhede Stadium, Mumbai": "Wankhede Stadium",
+    "Wankhede Stadium Mumbai": "Wankhede Stadium",
+    # Brabourne
+    "Brabourne Stadium, Mumbai": "Brabourne Stadium",
+    "Brabourne Stadium Mumbai": "Brabourne Stadium",
+    # Chennai
+    "MA Chidambaram Stadium, Chepauk": "MA Chidambaram Stadium",
+    "MA Chidambaram Stadium, Chepauk, Chennai": "MA Chidambaram Stadium",
+    "M.A. Chidambaram Stadium": "MA Chidambaram Stadium",
+    "M A Chidambaram Stadium": "MA Chidambaram Stadium",
+    "Chepauk Stadium": "MA Chidambaram Stadium",
+    "MA Chidambaram Stadium, Chennai": "MA Chidambaram Stadium",
+    # Kolkata
+    "Eden Gardens, Kolkata": "Eden Gardens",
+    # Bangalore
+    "M Chinnaswamy Stadium": "M. Chinnaswamy Stadium",
+    "M.Chinnaswamy Stadium": "M. Chinnaswamy Stadium",
+    "M Chinnaswamy Stadium, Bengaluru": "M. Chinnaswamy Stadium",
+    "M.Chinnaswamy Stadium, Bengaluru": "M. Chinnaswamy Stadium",
+    "M. Chinnaswamy Stadium, Bengaluru": "M. Chinnaswamy Stadium",
+    "M. Chinnaswamy Stadium, Bangalore": "M. Chinnaswamy Stadium",
+    # Hyderabad
+    "Rajiv Gandhi International Stadium, Uppal": "Rajiv Gandhi Intl Stadium",
+    "Rajiv Gandhi International Stadium": "Rajiv Gandhi Intl Stadium",
+    "Rajiv Gandhi International Cricket Stadium": "Rajiv Gandhi Intl Stadium",
+    "Rajiv Gandhi Intl. Cricket Stadium": "Rajiv Gandhi Intl Stadium",
+    "Rajiv Gandhi International Stadium, Hyderabad": "Rajiv Gandhi Intl Stadium",
+    "Rajiv Gandhi International Cricket Stadium, Hyderabad": "Rajiv Gandhi Intl Stadium",
+    # Delhi
+    "Arun Jaitley Stadium, Delhi": "Arun Jaitley Stadium",
+    "Feroz Shah Kotla": "Arun Jaitley Stadium",
+    "Feroz Shah Kotla Ground": "Arun Jaitley Stadium",
+    "Feroz Shah Kotla, Delhi": "Arun Jaitley Stadium",
+    # Jaipur
+    "Sawai Mansingh Stadium": "Sawai Mansingh Stadium",
+    "Sawai Mansingh Stadium, Jaipur": "Sawai Mansingh Stadium",
+    # Mohali
+    "Punjab Cricket Association IS Bindra Stadium, Mohali": "PCA Stadium, Mohali",
+    "Punjab Cricket Association IS Bindra Stadium": "PCA Stadium, Mohali",
+    "Punjab Cricket Association Stadium, Mohali": "PCA Stadium, Mohali",
+    "IS Bindra Stadium": "PCA Stadium, Mohali",
+    "PCA Stadium": "PCA Stadium, Mohali",
+    # Dharamsala
+    "Himachal Pradesh Cricket Association Stadium, Dharamsala": "HPCA Stadium, Dharamsala",
+    "Himachal Pradesh Cricket Association Stadium": "HPCA Stadium, Dharamsala",
+    "HPCA Stadium": "HPCA Stadium, Dharamsala",
+    # Ahmedabad
+    "Narendra Modi Stadium, Ahmedabad": "Narendra Modi Stadium",
+    "Sardar Patel Stadium, Motera": "Narendra Modi Stadium",
+    "Motera Stadium": "Narendra Modi Stadium",
+    # Lucknow
+    "Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow": "Ekana Cricket Stadium",
+    "Ekana Cricket Stadium, Lucknow": "Ekana Cricket Stadium",
+    "BRSABV Ekana Cricket Stadium": "Ekana Cricket Stadium",
+    # Visakhapatnam
+    "Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium": "ACA-VDCA Stadium, Visakhapatnam",
+    "ACA-VDCA Stadium": "ACA-VDCA Stadium, Visakhapatnam",
+    "Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam": "ACA-VDCA Stadium, Visakhapatnam",
+    # Navi Mumbai
+    "Dr DY Patil Sports Academy, Mumbai": "DY Patil Stadium",
+    "Dr DY Patil Sports Academy": "DY Patil Stadium",
+    # Pune
+    "Maharashtra Cricket Association Stadium, Pune": "MCA Stadium, Pune",
+    "Maharashtra Cricket Association Stadium": "MCA Stadium, Pune",
+    "Subrata Roy Sahara Stadium": "MCA Stadium, Pune",
+    # Guwahati
+    "Barsapara Cricket Stadium, Guwahati": "Barsapara Cricket Stadium",
+}
+
+
+def canonical_venue(value: str | None) -> str:
+    if not value:
+        return "Unknown"
+    stripped = str(value).strip()
+    return VENUE_NAME_MAP.get(stripped, stripped)
+
+
 def safe_float(value: Any, digits: int = 2) -> float:
     if value is None:
         return 0.0
@@ -412,7 +493,7 @@ def build_fixtures(schedule_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "label": row.get("MatchDateNew") or match_time.strftime("%d %b %Y"),
                 "teamA": canonical_team(row.get("HomeTeamName") or row.get("FirstBattingTeamName")),
                 "teamB": canonical_team(row.get("AwayTeamName") or row.get("SecondBattingTeamName")),
-                "venue": row.get("GroundName", "Unknown").strip(),
+                "venue": canonical_venue(row.get("GroundName", "Unknown").strip()),
                 "city": row.get("city", "Unknown").strip() or "Unknown",
                 "status": row.get("MatchStatus", "Upcoming"),
             }
@@ -551,7 +632,7 @@ def convert_official_match(
     match_id = safe_int(schedule_row.get("MatchID") or summary_row.get("MatchID"))
     match_time = parse_match_datetime(summary_row) or parse_match_datetime(schedule_row) or datetime(CURRENT_SEASON, 1, 1)
     toss_winner, toss_decision = parse_toss_details(summary_row.get("TossDetails") or schedule_row.get("TossDetails"))
-    venue = (schedule_row.get("GroundName") or str(summary_row.get("GroundName", "")).split(",")[0]).strip() or "Unknown"
+    venue = canonical_venue((schedule_row.get("GroundName") or str(summary_row.get("GroundName", "")).split(",")[0]).strip() or "Unknown")
     city = (schedule_row.get("city") or "").strip() or "Unknown"
     player_of_match = clean_feed_player_name(str(summary_row.get("MOM", "")).split("(")[0].strip())
     win_outcome = summary_row.get("Comments") or schedule_row.get("Comments") or schedule_row.get("Commentss") or ""
@@ -695,7 +776,7 @@ def fetch_official_2026_data() -> tuple[pd.DataFrame, dict[tuple[str, str], dict
 def prepare_history_frame(frame: pd.DataFrame) -> pd.DataFrame:
     frame = pick_columns(frame)
     frame["date"] = pd.to_datetime(frame["date"], errors="coerce")
-    frame["venue"] = frame["venue"].fillna("Unknown").astype(str).str.strip()
+    frame["venue"] = frame["venue"].fillna("Unknown").astype(str).str.strip().map(canonical_venue)
     frame["city"] = frame["city"].fillna("Unknown").astype(str).str.strip()
 
     numeric_columns = [
@@ -1124,7 +1205,16 @@ def train_model_weights(
     player_profiles: dict[str, dict[str, Any]],
     current_keys: set[str],
 ) -> dict[str, Any]:
-    """Train logistic regression on historical match features to learn optimal weights."""
+    """Train logistic regression on historical match features to learn optimal weights.
+
+    KNOWN LIMITATIONS (audit findings 1 & 2):
+    - Team batting/bowling strengths use current-2026 squad profiles for ALL historical
+      matches, causing temporal info leakage. A proper fix requires maintaining per-season
+      rolling rosters and computing pre-match strengths incrementally.
+    - Elo ratings are end-of-history values used for all matches rather than pre-match Elo.
+    - Until these are fixed, the trained weights are DISABLED in engine.ts (fallback used).
+      The weights are still computed here so they can be inspected and compared.
+    """
     current_franchises = {team["name"] for team in TEAM_META}
     team_stat_map = {row["team"]: row for _, row in team_stats.iterrows()}
     venue_stat_map: dict[str, dict[str, float]] = {}
@@ -1132,6 +1222,7 @@ def train_model_weights(
         venue_stat_map.setdefault(str(row["team"]), {})[str(row["venue"])] = float(row.get("winRate", 0.5))
 
     # Build player lookup by team for batting/bowling strength
+    # TODO: Replace with per-season rolling rosters to eliminate temporal leakage
     team_players: dict[str, list[dict[str, Any]]] = {}
     for p in player_profiles.values():
         team_players.setdefault(p["currentTeam"], []).append(p)
@@ -1156,6 +1247,9 @@ def train_model_weights(
         players = team_players.get(team, [])
         forms = [p.get("formScore", 0.5) for p in players[:11]]
         return np.mean(forms) if forms else 0.5
+
+    # Build head-to-head records from match history for proper h2h feature
+    h2h_records: dict[str, dict[str, int]] = {}  # {teamA: {teamB: wins}}
 
     features = []
     labels = []
@@ -1188,9 +1282,20 @@ def train_model_weights(
         elif toss_winner == team_b:
             toss_edge = -1.0
 
+        # Head-to-head edge: use pre-match accumulated h2h record
+        wins_a_vs_b = h2h_records.get(team_a, {}).get(team_b, 0)
+        wins_b_vs_a = h2h_records.get(team_b, {}).get(team_a, 0)
+        total_h2h = wins_a_vs_b + wins_b_vs_a
+        if total_h2h > 0:
+            h2h_edge = (wins_a_vs_b / total_h2h - wins_b_vs_a / total_h2h) * 40
+        else:
+            h2h_edge = 0.0
+
+        # Stability edge: use overall team win rates as proxy
         team_a_wr = float(team_stat_map.get(team_a, {}).get("winRate", 0.5))
         team_b_wr = float(team_stat_map.get(team_b, {}).get("winRate", 0.5))
         stability_edge = team_a_wr - team_b_wr
+
         death_bowling_edge = team_death_bowling(team_a) - team_death_bowling(team_b)
         powerplay_edge = team_powerplay_batting(team_a) - team_powerplay_batting(team_b)
 
@@ -1201,14 +1306,20 @@ def train_model_weights(
             elo_edge,
             form_edge,
             toss_edge,
-            stability_edge,   # proxy for h2h edge
-            stability_edge,   # stability
-            0.0,              # freshness (not available in historical)
-            0.0,              # matchup edge (too expensive to compute per-match)
+            h2h_edge,           # FIXED: actual h2h record, not stability duplicate
+            stability_edge,     # separate stability feature
+            0.0,                # freshness (not available in historical data)
+            0.0,                # matchup edge (too expensive to compute per-match historically)
             death_bowling_edge,
             powerplay_edge,
         ])
         labels.append(1 if winner == team_a else 0)
+
+        # Update h2h records AFTER building this match's features (pre-match state)
+        h2h_records.setdefault(winner, {}).setdefault(
+            team_b if winner == team_a else team_a, 0
+        )
+        h2h_records[winner][team_b if winner == team_a else team_a] += 1
 
     if len(features) < 50:
         # Not enough data — return sensible defaults
@@ -1829,8 +1940,14 @@ def build_teams(
         batting_rating = safe_float(
             sum(item["batting"]["index"] for item in squad[:8]) / max(min(len(squad), 8), 1)
         )
+        # Sort by bowling index to pick actual bowlers, not top batters with 0 bowling
+        squad_by_bowling = sorted(
+            grouped.get(team["name"], []),
+            key=lambda item: item["bowling"]["index"],
+            reverse=True,
+        )
         bowling_rating = safe_float(
-            sum(item["bowling"]["index"] for item in squad[:7]) / max(min(len(squad), 7), 1)
+            sum(item["bowling"]["index"] for item in squad_by_bowling[:7]) / max(min(len(squad_by_bowling), 7), 1)
         )
         team_row = team_stat_map.get(team["name"], {})
 
