@@ -1,0 +1,8 @@
+beautifulsoup4>=4.12
+duckdb>=1.5
+kagglehub>=1.0
+numpy>=1.26
+pandas>=2.2
+pypdf>=5.4
+requests>=2.32
+scikit-learn>=1.4
