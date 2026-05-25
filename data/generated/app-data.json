@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-05-24T21:33:10.895492+00:00",
+  "builtAt": "2026-05-25T21:48:28.620143+00:00",
   "source": {
     "historical": "Kaggle chaitu20/ipl-dataset2008-2025",
     "currentSquads": "Official IPL 2026 team pages + official IPL scores feeds",
@@ -4148,19 +4148,19 @@
           "matchesPlayed": 26,
           "batting": {
             "innings": 26,
-            "runs": 563,
+            "runs": 564,
             "balls": 328,
             "outs": 19,
-            "average": 29.63,
-            "strikeRate": 171.65,
+            "average": 29.68,
+            "strikeRate": 171.95,
             "boundaryRate": 24.09,
-            "index": 107.14,
-            "recentIndex": 188.81,
+            "index": 107.29,
+            "recentIndex": 189.15,
             "chaseIndex": 180.5,
-            "batFirstIndex": 157.81,
-            "powerplayIndex": 75.0,
-            "middleIndex": 86.16,
-            "deathIndex": 93.32
+            "batFirstIndex": 158.59,
+            "powerplayIndex": 75.1,
+            "middleIndex": 86.2,
+            "deathIndex": 93.5
           },
           "bowling": {
             "innings": 0,
@@ -4203,19 +4203,19 @@
               "sample": 2
             },
             {
-              "venue": "Sawai Mansingh Stadium",
-              "battingScore": 178.57,
+              "venue": "Eden Gardens",
+              "battingScore": 180.0,
               "bowlingScore": 0.0,
               "sample": 1
             }
           ],
-          "formScore": 0.74,
+          "formScore": 0.747,
           "expectedBattingPosition": 3.88,
           "expectedBallsFaced": 12.62,
           "expectedOversBowled": 0.0,
-          "selectionScore": 152.46,
+          "selectionScore": 152.6,
           "availability": 1.0,
-          "baseFantasyPoints": 99.39,
+          "baseFantasyPoints": 99.53,
           "fantasyCredit": 10.5,
           "matches2026": 8,
           "starts2026": 4,
@@ -7512,7 +7512,7 @@
       "wins": 141,
       "winRate": 50.9,
       "battingRating": 91.68,
-      "bowlingRating": 8.84,
+      "bowlingRating": 8.81,
       "eloRating": 1504.93,
       "venueStats": [
         {
@@ -8876,21 +8876,21 @@
             "balls": 77,
             "wickets": 5,
             "overs": 12.83,
-            "average": 21.0,
-            "economy": 8.18,
+            "average": 21.2,
+            "economy": 8.26,
             "strikeRate": 15.4,
             "dotRate": 48.05,
-            "index": 18.93,
+            "index": 18.69,
             "recentIndex": 15.58,
-            "powerplayIndex": 19.01,
-            "middleIndex": 15.51,
-            "deathIndex": 14.96
+            "powerplayIndex": 18.88,
+            "middleIndex": 15.31,
+            "deathIndex": 14.58
           },
           "venueHighlights": [
             {
               "venue": "Eden Gardens",
               "battingScore": 200.0,
-              "bowlingScore": 36.14,
+              "bowlingScore": 36.04,
               "sample": 3
             },
             {
@@ -8900,13 +8900,13 @@
               "sample": 1
             }
           ],
-          "formScore": 0.495,
+          "formScore": 0.493,
           "expectedBattingPosition": 11.0,
           "expectedBallsFaced": 2.0,
           "expectedOversBowled": 3.21,
-          "selectionScore": 144.47,
+          "selectionScore": 144.41,
           "availability": 1.0,
-          "baseFantasyPoints": 103.25,
+          "baseFantasyPoints": 103.14,
           "fantasyCredit": 10.5,
           "matches2026": 4,
           "starts2026": 3,
@@ -27746,19 +27746,19 @@
       "matchesPlayed": 26,
       "batting": {
         "innings": 26,
-        "runs": 563,
+        "runs": 564,
         "balls": 328,
         "outs": 19,
-        "average": 29.63,
-        "strikeRate": 171.65,
+        "average": 29.68,
+        "strikeRate": 171.95,
         "boundaryRate": 24.09,
-        "index": 107.14,
-        "recentIndex": 188.81,
+        "index": 107.29,
+        "recentIndex": 189.15,
         "chaseIndex": 180.5,
-        "batFirstIndex": 157.81,
-        "powerplayIndex": 75.0,
-        "middleIndex": 86.16,
-        "deathIndex": 93.32
+        "batFirstIndex": 158.59,
+        "powerplayIndex": 75.1,
+        "middleIndex": 86.2,
+        "deathIndex": 93.5
       },
       "bowling": {
         "innings": 0,
@@ -27801,19 +27801,19 @@
           "sample": 2
         },
         {
-          "venue": "Sawai Mansingh Stadium",
-          "battingScore": 178.57,
+          "venue": "Eden Gardens",
+          "battingScore": 180.0,
           "bowlingScore": 0.0,
           "sample": 1
         }
       ],
-      "formScore": 0.74,
+      "formScore": 0.747,
       "expectedBattingPosition": 3.88,
       "expectedBallsFaced": 12.62,
       "expectedOversBowled": 0.0,
-      "selectionScore": 152.46,
+      "selectionScore": 152.6,
       "availability": 1.0,
-      "baseFantasyPoints": 99.39,
+      "baseFantasyPoints": 99.53,
       "fantasyCredit": 10.5,
       "matches2026": 8,
       "starts2026": 4,
@@ -33788,21 +33788,21 @@
         "balls": 77,
         "wickets": 5,
         "overs": 12.83,
-        "average": 21.0,
-        "economy": 8.18,
+        "average": 21.2,
+        "economy": 8.26,
         "strikeRate": 15.4,
         "dotRate": 48.05,
-        "index": 18.93,
+        "index": 18.69,
         "recentIndex": 15.58,
-        "powerplayIndex": 19.01,
-        "middleIndex": 15.51,
-        "deathIndex": 14.96
+        "powerplayIndex": 18.88,
+        "middleIndex": 15.31,
+        "deathIndex": 14.58
       },
       "venueHighlights": [
         {
           "venue": "Eden Gardens",
           "battingScore": 200.0,
-          "bowlingScore": 36.14,
+          "bowlingScore": 36.04,
           "sample": 3
         },
         {
@@ -33812,13 +33812,13 @@
           "sample": 1
         }
       ],
-      "formScore": 0.495,
+      "formScore": 0.493,
       "expectedBattingPosition": 11.0,
       "expectedBallsFaced": 2.0,
       "expectedOversBowled": 3.21,
-      "selectionScore": 144.47,
+      "selectionScore": 144.41,
       "availability": 1.0,
-      "baseFantasyPoints": 103.25,
+      "baseFantasyPoints": 103.14,
       "fantasyCredit": 10.5,
       "matches2026": 4,
       "starts2026": 3,
@@ -99620,6 +99620,21 @@
       "venue": "Rajiv Gandhi Intl Stadium"
     },
     {
+      "batterKey": "ashutoshsharma",
+      "bowlerKey": "saurabhdubey",
+      "batter": "Ashutosh Sharma",
+      "bowler": "Saurabh Dubey",
+      "balls": 4,
+      "runs": 7,
+      "dismissals": 0,
+      "strikeRate": 175.0,
+      "dismissalRate": 0.0,
+      "edge": 26.25,
+      "smoothedEdge": 8.75,
+      "scope": "venue",
+      "venue": "Eden Gardens"
+    },
+    {
       "batterKey": "ayushbadoni",
       "bowlerKey": "kartiktyagi",
       "batter": "Ayush Badoni",
@@ -100194,21 +100209,6 @@
       "bowlerKey": "lungisaningidi",
       "batter": "Anukul Roy",
       "bowler": "Lungisani Ngidi",
-      "balls": 4,
-      "runs": 6,
-      "dismissals": 0,
-      "strikeRate": 150.0,
-      "dismissalRate": 0.0,
-      "edge": 22.5,
-      "smoothedEdge": 7.5,
-      "scope": "venue",
-      "venue": "Eden Gardens"
-    },
-    {
-      "batterKey": "ashutoshsharma",
-      "bowlerKey": "saurabhdubey",
-      "batter": "Ashutosh Sharma",
-      "bowler": "Saurabh Dubey",
       "balls": 4,
       "runs": 6,
       "dismissals": 0,
@@ -106120,17 +106120,17 @@
   "modelWeights": {
     "intercept": -0.1964,
     "battingEdge": -0.0056,
-    "bowlingEdge": -0.0082,
+    "bowlingEdge": -0.0084,
     "venueEdge": 0.042,
     "eloEdge": 0.0,
-    "formEdge": -0.4962,
+    "formEdge": -0.4963,
     "tossEdge": -0.0607,
     "h2hEdge": -0.0069,
-    "stabilityEdge": -1.0837,
+    "stabilityEdge": -1.0821,
     "freshnessEdge": 0.0,
     "matchupEdge": 0.0,
-    "deathBowlingEdge": 0.0165,
-    "powerplayEdge": 0.0066
+    "deathBowlingEdge": 0.0166,
+    "powerplayEdge": 0.0067
   },
   "globalPriors": {
     "battingIndex": 78.47,
